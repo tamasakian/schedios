@@ -3,3 +3,5 @@
 # Except for the following files and directories
 !/README.md
 !/.gitignore
+!/jobs/
+!/jobs/profile.zsh
