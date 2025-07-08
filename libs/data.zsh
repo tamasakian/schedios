@@ -5,8 +5,8 @@ function fetch_genome_by_genus() {
     # Dependencies: datasets, biotp
 
     # === Usage ===
-    if [[ $# != 1 ]]; then
-        echo "Usage: $0 <genus>" >&2
+    if (( $# != 1 )); then
+        echo "Usage: fetch_genome_by_genus <genus>" >&2
         exit 1
     fi
 
