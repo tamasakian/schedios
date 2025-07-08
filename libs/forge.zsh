@@ -45,3 +45,5 @@ function forge_hmmscan_input() {
     echo "[FINISHED] HMMscan input prepared in: ${taskdir}"
     cat "${taskdir}/fasta/"*_prefixed.fasta > "${taskdir}/input/all_species.fasta"
 }
+
+
