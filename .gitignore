@@ -5,3 +5,5 @@
 !/.gitignore
 !/jobs/
 !/jobs/profile.zsh
+!/libs/
+!/libs/data.zsh
