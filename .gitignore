@@ -7,3 +7,5 @@
 !/jobs/profile.zsh
 !/libs/
 !/libs/data.zsh
+!/libs/forge.zsh
+!/libs/hmmscan.zsh
