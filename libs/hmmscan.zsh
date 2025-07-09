@@ -5,7 +5,7 @@ function hmmscan_pfam_domain() {
     # dependencies: hmmer
 
     # === Defaults ===
-    local threads=10
+    local threads=4
     local cutoffs="ga,nc,tc"
 
     # === Usage ===
