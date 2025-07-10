@@ -31,3 +31,22 @@ forge_hmmscan_input <sp_name1> <sp_name2> ...
 - The function creates a task directory with the current timestamp and generates a combined FASTA file named `all_species.fasta` in the `input` subdirectory of the task directory.
 - The FASTA files for each species are prefixed with their species name to ensure unique identifiers.
 
+### hmmscan_pfam_domain
+This function runs HMMscan to identify Pfam domains in protein sequences.
+It requires the [hmmscan](https://hmmer.org/) command to be available in your environment.
+
+You need to execute this function in the task directory created by `forge_hmmscan_input`.
+
+```zsh
+forge_hmmscan_input <sp_name1> <sp_name2> ...
+```
+
+Then run:
+
+```zsh
+hmmscan_pfam_domain <taskname> [--threads <threads>] [--cutoffs <comma_separated_list_of_cutoffs>]"
+```
+- `<taskname>`: The name of the task directory where the input files are located.
+- `--threads <threads>`: Optional. Number of threads to use for HMMscan (default: 4).
+- `--cutoffs <comma_separated_list_of_cutoffs>`: Optional. Cutoffs for HMMscan (default: "ga,nc,tc").
+- The function runs HMMscan on the combined FASTA file in the `input` subdirectory of the task directory and saves the output in the `output` subdirectory of the task directory.
