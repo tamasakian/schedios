@@ -44,7 +44,7 @@ function fetch_genome_by_genus() {
     rm $tmpfile
 
     # === Copy files ===
-    for ((i=1; i<${#org_li[@]}; i++)); do
+    for ((i=1; i<=${#org_li[@]}; i++)); do
         acc="${acc_li[i]}"
         org="${org_li[i]}"
         asm="${asm_li[i]}"
