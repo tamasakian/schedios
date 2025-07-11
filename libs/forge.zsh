@@ -62,7 +62,7 @@ function forge_fastoma_input(){
 
     # === Make directories ===
     local taskdir="${TASKS}/fastoma_$(date +"%Y-%m-%d-%H-%M-%S")"
-    mkdir -p "${taskdir}/tmp" "${taskdir}/fasta" "${taskdir}/input" "${taskdir}/input/proteomes"
+    mkdir -p "${taskdir}/tmp" "${taskdir}/fasta" "${taskdir}/input" "${taskdir}/input/proteome"
 
     for sp in "${sp_names[@]}"; do
         local sp_fs="${sp// /_}"
@@ -84,7 +84,7 @@ function forge_fastoma_input(){
         echo "[INFO] Converting sequence IDs for species: ${sp}"
         python3 -m fasp prefix_to_sequence_ids \
             "${taskdir}/fasta/${sp_fs}.fasta" \
-            "${taskdir}/input/proteomes/${sp_fs}.fasta" \
+            "${taskdir}/input/proteome/${sp_fs}.fasta" \
             "${sp_fs}"
     done
 
