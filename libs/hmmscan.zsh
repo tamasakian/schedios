@@ -20,11 +20,11 @@ function hmmscan_pfam_domain() {
 
     while (( $# > 0 )); do
         case "$1" in
-            --threads|-t)
+            --threads)
                 threads="$2"
                 shift 2
                 ;;
-            --cutoffs|-c)
+            --cutoffs)
                 cutoffs="$2"
                 shift 2
                 ;;
