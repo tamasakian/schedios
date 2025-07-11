@@ -24,6 +24,7 @@ function forge_hmmscan_input() {
         local pep="${DATA}/${gn}/${sp_fs}.pep.all.fasta"
         local cds="${DATA}/${gn}/${sp_fs}.cds.all.fasta"
 
+        mkdir -p "${taskdir}/tmp/${sp_fs}"
         cp "${pep}" "${taskdir}/tmp/${sp_fs}/pep.fasta"
         cp "${cds}" "${taskdir}/tmp/${sp_fs}/cds.fasta"
 
