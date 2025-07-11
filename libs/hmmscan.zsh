@@ -48,8 +48,8 @@ function hmmscan_pfam_domain() {
     cutoff_arr=("${(s:,:)cutoffs}")
     for cut in "${cutoff_arr[@]}"; do
         hmmscan \
-            -o "${outdir}/output/hmmscan_${cut}.txt" \
-            --domtblout "${taskdir}/output/domtblout_${cut}.txt" \
+            -o "${outdir}/hmmscan_${cut}.txt" \
+            --domtblout "${outdir}/domtblout_${cut}.txt" \
             --cpu "$threads" \
             --cut_${cut} \
             "$hmm" \
