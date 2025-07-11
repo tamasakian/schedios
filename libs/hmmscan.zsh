@@ -45,7 +45,7 @@ function hmmscan_pfam_domain() {
     mkdir -p "$outdir"
 
     # === HMMSCAN Execution ===
-    IFS=',' read -r -a cutoff_arr <<< "$cutoffs"
+    cutoff_arr=("${(s:,:)cutoffs}")
     for cut in "${cutoff_arr[@]}"; do
         hmmscan \
             -o "${outdir}/output/hmmscan_${cut}.txt" \
