@@ -120,7 +120,6 @@ function forge_mcscanx() {
 
     # === Arguments ===
     local sp_names=("${@}")
-    local threads=4
     local taskdir="${TASKS}/mcscanx_$(date +"%Y-%m-%d-%H-%M-%S")"
     mkdir -p "${taskdir}/tmp" "${taskdir}/fasta" "${taskdir}/fasta_prefix" "${taskdir}/gff" "${taskdir}/bed" "${taskdir}/bed_prefix" "${taskdir}/input" "${taskdir}/output"
 
