@@ -121,7 +121,8 @@ function forge_mcscanx() {
     # === Arguments ===
     local sp_names=("${@}")
     local taskdir="${TASKS}/mcscanx_$(date +"%Y-%m-%d-%H-%M-%S")"
-    mkdir -p "${taskdir}/tmp" "${taskdir}/fasta" "${taskdir}/fasta_prefix" "${taskdir}/gff" "${taskdir}/bed" "${taskdir}/bed_prefix" "${taskdir}/input" "${taskdir}/output"
+    mkdir -p "${taskdir}/tmp" "${taskdir}/fasta" "${taskdir}/fasta_prefix" "${taskdir}/gff" "${taskdir}/bed" "${taskdir}/bed_prefix" "${taskdir}/input"
+    mkdir -p "${taskdir}/input/pairs" "${taskdir}/input/collinearity"
 
     echo "[INFO] Preparing MCScanX input for species: ${sp_names[*]}"
     if [[ ${#sp_names[@]} -lt 2 ]]; then
@@ -164,7 +165,7 @@ function forge_mcscanx() {
             local sp2_fs="${sp2// /_}"
             local gn1="${sp1_fs%%_*}"
             local gn2="${sp2_fs%%_*}"
-            local pairdir="${taskdir}/input/${sp1_fs}__${sp2_fs}"
+            local pairdir="${taskdir}/input/pairs/${sp1_fs}__${sp2_fs}"
             mkdir -p "$pairdir"
 
             echo "[INFO] Processing pair: ${sp1} vs ${sp2}"
@@ -179,7 +180,7 @@ function forge_mcscanx() {
                 --threads "$threads" \
                 --outfmt 6
             MCScanX "${pairdir}/${sp1_fs}__${sp2_fs}"
-            cp "${pairdir}/${sp1_fs}__${sp2_fs}.collinearity" "${taskdir}/output/${gn1}__${gn2}.collinearity"
+            cp "${pairdir}/${sp1_fs}__${sp2_fs}.collinearity" "${taskdir}/input/collinearity/${gn1}__${gn2}.collinearity"
         done
     done
 }
