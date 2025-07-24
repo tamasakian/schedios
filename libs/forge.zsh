@@ -178,7 +178,7 @@ function forge_mcscanx() {
                 --threads "$threads" \
                 --outfmt 6
             MCScanX "${pairdir}/${sp1_fs}__${sp2_fs}"
-            cp "${pairdir}/${sp1_fs}__${sp2_fs}.collinearity" "${taskdir}/input/collinearity/${gn1}__${gn2}.collinearity"
+            cp "${pairdir}/${sp1_fs}__${sp2_fs}.collinearity" "${taskdir}/input/collinearity/${sp1_fs}__${sp2_fs}.collinearity"
         done
     done
 }
