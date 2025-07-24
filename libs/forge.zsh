@@ -155,8 +155,6 @@ function forge_mcscanx() {
     done
 
     # === Create pairs and run MCScanX ===
-    echo "[INFO] Creating pairs and running MCScanX"
-
     for ((i=1; i<=${#sp_names[@]}-1; i++)); do
         for ((j=i+1; j<=${#sp_names[@]}; j++)); do
             local sp1="${sp_names[i]}"
