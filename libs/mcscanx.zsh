@@ -18,7 +18,7 @@ function detect_collinearity_within_gene_families() {
 
     # === Make directories ===
     local outdir="${taskdir}/output/$(date +"%Y-%m-%d-%H-%M-%S")"
-    mkdir -p "$outdir"
+    mkdir -p "${taskdir}/output" "$outdir"
 
     # === Check input directory ===
     if [[ ! -d "${taskdir}/input" ]]; then
