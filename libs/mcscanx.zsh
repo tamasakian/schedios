@@ -7,7 +7,7 @@ function detect_collinearity_within_gene_families() {
 
     # === Usage ===
     if (( $# != 2 )); then
-        echo "Usage: run_mcscanx_da <taskname> <family>" >&2
+        echo "Usage: detect_collinearity_within_gene_families <taskname> <family>" >&2
         exit 1
     fi
 
@@ -18,7 +18,7 @@ function detect_collinearity_within_gene_families() {
 
     # === Make directories ===
     local outdir="${taskdir}/output/$(date +"%Y-%m-%d-%H-%M-%S")"
-    mkdir -p "${taskdir}/output" "$outdir"
+    mkdir -p "${taskdir}/output" "$outdir" "${outdir}/synteny" "${outdir}/long"
 
     # === Check input directory ===
     if [[ ! -d "${taskdir}/input" ]]; then
@@ -34,9 +34,24 @@ function detect_collinearity_within_gene_families() {
 
     # === Process each collinearity file ===
     local family_file="${taskdir}/input/${family}"
+
+    if [[ ! -f "$family_file" ]]; then
+        echo "[Error] Family file not found: $family_file" >&2
+        exit 1
+    fi
+
+    local sog_file="${outdir}/sog.txt"
+    touch "$sog_file"
     for input_file in "${taskdir}/input/collinearity/"*.collinearity; do
         local base_name="${input_file##*/}"
-        local output_file="${outdir}/${base_name%.collinearity}.txt"
+        local output_file="${outdir}/synteny/${base_name%.collinearity}.txt"
+        # === Run the Perl script to detect collinearity within gene families ===
+        echo "[INFO] Processing collinearity file: $input_file"
         perl ${HOME}/bin/MCScanX-1.0.0/downstream_analyses/detect_collinearity_within_gene_families.pl -i "$family_file" -d "$input_file" -o "$output_file"
+
+        # === Convert output to long format and append to SOG file ===
+        echo "[INFO] Converting output to long format: $output_file"
+        python3 -m tidyg pivot_longer "$output_file" "${outdir}/long/${base_name%.collinearity}.txt"
+        cat "${outdir}/long/${base_name%.collinearity}.txt" >> "$sog_file"
     done
 }
