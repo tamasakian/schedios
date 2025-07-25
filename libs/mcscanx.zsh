@@ -34,7 +34,7 @@ function detect_collinearity_within_gene_families() {
 
     # === Process each collinearity file ===
     local family_file="${taskdir}/input/${family}"
-    for input_file in "${TASKFILE}/${taskname}/input/collinearity/"*.collinearity; do
+    for input_file in "${taskdir}/input/collinearity/"*.collinearity; do
         local base_name="${input_file##*/}"
         local output_file="${outdir}/${base_name%.collinearity}.txt"
         perl ${HOME}/bin/MCScanX-1.0.0/downstream_analyses/detect_collinearity_within_gene_families.pl -i "$family_file" -d "$input_file" -o "$output_file"
