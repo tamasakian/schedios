@@ -12,3 +12,4 @@
 !/libs/hmmscan.zsh
 !/libs/hmmsearch.zsh
 !/libs/mcscanx.zsh
+!/libs/ncbi.zsh
