@@ -13,7 +13,7 @@ function input4fastoma(){
 
     # === Make directories ===
     taskdir="${TASKS}/fastoma_$(date +"%Y-%m-%d-%H-%M-%S")"
-    mkdir -p "${taskdir}/proteomes"
+    mkdir -p "${taskdir}/proteome"
 
     # === Proteomes ===
     for name in "${names[@]}"; do
@@ -30,7 +30,7 @@ function input4fastoma(){
 
         python3 -m fasp prefix_to_sequence_ids \
             "${tmpdir}/longest.pep.fasta" \
-            "${taskdir}/proteomes/${sp_name}.fasta" \
+            "${taskdir}/proteome/${sp_name}.fasta" \
             "$sp_name"
 
         rm -r "$tmpdir"
