@@ -1,13 +1,13 @@
 #!/usr/bin/env zsh
 
-function forge_hmmsearch_input() {
+function input4hmmsearch() {
     # This function prepares input for HMMsearch by creating a task directory
     # and generating a combined FASTA file from multiple species.
     # Dependencies: bithon, fasp
 
     # === Arguments ===
     if (( $# < 2 )); then
-        echo "Usage: forge_hmmsearch_input <sp_name1> <sp_name2> ..." >&2
+        echo "Usage: input4hmmsearch <sp_name1> <sp_name2> ..." >&2
         exit 1
     fi
     names=("${@}")
