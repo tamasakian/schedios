@@ -49,18 +49,17 @@ function run_fastoma() {
     # Dependencies: fastoma
 
     # === Defaults ===
-    local threads=4
-    local memory=8.GB
-    local db="LUCA"
+    threads=4
+    memory=8.GB
+    db="LUCA"
 
-    # === Usage ===
+    # === Arguments ===
     if (( $# < 1 )); then
         echo "Usage: run_fastoma <taskname> [--threads <threads>] [--memory <memory>] [--db <db>]" >&2
         exit 1
     fi
 
-    # === Arguments ===
-    local taskname="$1"
+    taskname="$1"
     shift
 
     while (( $# > 0 )); do
@@ -84,19 +83,16 @@ function run_fastoma() {
         esac
     done
 
-    # === Set paths ===
-    local taskdir="${TASKS}/${taskname}"
-    local indir="${taskdir}/input/"
-
     # === Make directories ===
-    local outdir="${taskdir}/output_$(date +"%Y-%m-%d-%H-%M-%S")"
+    taskdir="${TASKS}/${taskname}"
+    outdir="${taskdir}/output_$(date +"%Y-%m-%d-%H-%M-%S")"
     mkdir -p "$outdir"
 
     # === FastOMA Execution ===
     nextflow run dessimozlab/FastOMA \
         -r v0.3.5 \
         -profile singularity \
-        --input_folder "$indir" \
+        --input_folder "$taskdir" \
         --output_folder "$outdir" \
         --omamer_db "${DATA}/OMAmer/${db}.h5" \
         -process.cpus=${threads} \
