@@ -76,9 +76,9 @@ function hmmsearch_pfam_domain() {
     done
 
     # === Set paths ===
-    local taskdir="${TASKS}/${taskname}"
-    local fasta="${taskdir}/input/all_species.fasta"
-    local hmm="${DATA}/Pfam/${domain}.hmm"
+    taskdir="${TASKS}/${taskname}"
+    fasta="${taskdir}/input/all_species.fasta"
+    hmm="${DATA}/Pfam/${domain}.hmm"
 
     # === Check if HMM file exists, if not, fetch it ===
     if [[ ! -f "$hmm" ]]; then
@@ -86,7 +86,7 @@ function hmmsearch_pfam_domain() {
     fi
 
     # === Make directories ===
-    local outdir="${taskdir}/output_$(date +"%Y-%m-%d-%H-%M-%S")"
+    outdir="${taskdir}/output_$(date +"%Y-%m-%d-%H-%M-%S")"
     mkdir -p "$outdir"
 
     # === HMMSEARCH Execution ===
