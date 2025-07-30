@@ -12,7 +12,7 @@ function input4fastoma(){
     names=("${@}")
 
     # === Make directories ===
-    taskdir="${TASKS}/hmmsearch_$(date +"%Y-%m-%d-%H-%M-%S")"
+    taskdir="${TASKS}/fastoma_$(date +"%Y-%m-%d-%H-%M-%S")"
     mkdir -p "${taskdir}/proteomes"
 
     # === Proteomes ===
