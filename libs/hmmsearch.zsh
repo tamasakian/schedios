@@ -48,15 +48,14 @@ function hmmsearch_pfam_domain() {
     local threads=4
     local cutoffs="ga,nc,tc"
 
-    # === Usage ===
+    # === Arguments ===
     if (( $# < 1 )); then
         echo "Usage: hmmsearch_pfam_domain <taskname> <domain> [--threads <threads>] [--cutoffs <comma_separated_list_of_cutoffs>]" >&2
         exit 1
     fi
 
-    # === Arguments ===
-    local taskname="$1"
-    local domain="$2"
+    taskname="$1"
+    domain="$2"
     shift 2
 
     while (( $# > 0 )); do
@@ -80,6 +79,11 @@ function hmmsearch_pfam_domain() {
     local taskdir="${TASKS}/${taskname}"
     local fasta="${taskdir}/input/all_species.fasta"
     local hmm="${DATA}/Pfam/${domain}.hmm"
+
+    # === Check if HMM file exists, if not, fetch it ===
+    if [[ ! -f "$hmm" ]]; then
+        hmmfetch -o "$hmm" "${DATA}/Pfam/Pfam-A.hmm" "$domain"
+    fi
 
     # === Make directories ===
     local outdir="${taskdir}/output_$(date +"%Y-%m-%d-%H-%M-%S")"
