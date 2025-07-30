@@ -2,7 +2,7 @@
 
 function input4fastoma(){
     # This function prepares input for FastOMA by selecting longest isoforms and converting sequence IDs.
-    # Dependencies: bithon, biotp, fasp, ete3
+    # Dependencies: bithon, biotp, fasp, taxonkit, ete3
 
     # === Arguments ===
     if (( $# < 2 )); then
