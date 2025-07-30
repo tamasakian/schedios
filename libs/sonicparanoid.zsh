@@ -12,7 +12,7 @@ function input4sonicparanoid(){
     names=("${@}")
 
     # === Make directories ===
-    taskdir="${TASKS}/fastoma_$(date +"%Y-%m-%d-%H-%M-%S")"
+    taskdir="${TASKS}/sonicparanoid_$(date +"%Y-%m-%d-%H-%M-%S")"
     mkdir -p "${taskdir}/input"
 
     # === Proteomes ===
