@@ -1,6 +1,93 @@
 #!/usr/bin/env zsh
 
 function input4mcscanx() {
+    # This function prepares input for MCScanX by selecting longest isoforms,
+    # converting sequence IDs, and preparing BED files for pairwise comparisons.
+    # Dependencies: bithon, fasp, g2bp, diamond, MCScanX
+
+    # === Arguments ===
+    local threads=4
+    if [[ "$1" == "--threads" ]]; then
+        threads="$2"
+        shift 2
+    fi
+
+    if (( $# < 2 )); then
+        echo "Usage: input4mcscanx [--threads N] <sp1> <sp2> ..." >&2
+        return 1
+    fi
+    local all=("$@")
+
+    # === Prepare task directory ===
+    local taskdir="${TASKS}/mcscanx_$(date +"%Y-%m-%d-%H-%M-%S")"
+    mkdir -p "${taskdir}/fasta" "${taskdir}/bed" "${taskdir}/pairs" "${taskdir}/collinearity"
+
+    # === Prepare files for each species ===
+    for sp in "${all[@]}"; do
+        local sp_name="${sp// /_}"
+        local tmpdir="${taskdir}/tmp_${sp_name}"
+        mkdir -p "$tmpdir"
+
+        local pep="${DATA}/${sp_name}/${sp_name}.pep.all.fasta"
+        local cds="${DATA}/${sp_name}/${sp_name}.cds.all.fasta"
+        local gff="${DATA}/${sp_name}/${sp_name}.genome.gff"
+
+        cp "$pep" "${tmpdir}/pep.fasta"
+        cp "$cds" "${tmpdir}/cds.fasta"
+        cp "$gff" "${tmpdir}/genome.gff"
+
+        bithon gls -i "$tmpdir" -o "$tmpdir"
+
+        python3 -m g2bp fasta4mcscanx \
+            "${tmpdir}/genome.gff" \
+            "${tmpdir}/genome.bed" \
+            "${tmpdir}/longest.pep.fasta"
+
+        python3 -m fasp prefix_to_sequence_ids \
+            "${tmpdir}/longest.pep.fasta" \
+            "${taskdir}/fasta/${sp_name}.fasta" \
+            "$sp_name"
+
+        awk -v sp="${sp_name}_" 'BEGIN{OFS=FS="\t"} {$2=sp $2; print}' "${tmpdir}/genome.bed" > "${taskdir}/bed/${sp_name}.bed"
+
+        rm -r "$tmpdir"
+    done
+
+    # === Make diamond DB for focus species once ===
+    for sp in "${all[@]}"; do
+        local sp_name="${sp// /_}"
+        diamond makedb --in "${taskdir}/fasta/${sp_name}.fasta" \
+            -d "${taskdir}/fasta/${sp_name}.dmnd"
+    done
+
+    # === Pairwise comparisons: focus × other ===
+    for ((i=0; i<${#all[@]}; i++)); do
+        for ((j=i+1; j<${#all[@]}; j++)); do
+            local sp1="${all[i]}"
+            local sp2="${all[j]}"
+            local sp1_name="${sp1// /_}"
+            local sp2_name="${sp2// /_}"
+            local pairdir="${taskdir}/pairs/${sp1_name}__${sp2_name}"
+            mkdir -p "$pairdir"
+
+            cat "${taskdir}/bed/${sp1_name}.bed" \
+                "${taskdir}/bed/${sp2_name}.bed" \
+                > "${pairdir}/${sp1_name}__${sp2_name}.gff"
+
+            diamond blastp \
+                -q "${taskdir}/fasta/${sp1_name}.fasta" \
+                -d "${taskdir}/fasta/${sp2_name}.dmnd" \
+                -o "${pairdir}/${sp1_name}__${sp2_name}.blast" \
+                --threads "$threads" --outfmt 6
+
+            MCScanX "${pairdir}/${sp1_name}__${sp2_name}"
+
+            cp "${pairdir}/${sp1_name}__${sp2_name}.collinearity" "${taskdir}/collinearity/${sp1_name}__${sp2_name}.collinearity"
+        done
+    done
+}
+
+function input4mcscanx2() {
     # Prepare input for MCScanX with focus × other comparisons only
     # Dependencies: bithon, fasp, g2bp, diamond, MCScanX
 
@@ -12,7 +99,7 @@ function input4mcscanx() {
     fi
 
     if [[ "$1" != "--focus" ]]; then
-        echo "Usage: input4mcscanx [--threads N] --focus <sp1> ... --all <spA> ..." >&2
+        echo "Usage: input4mcscanx2 [--threads N] --focus <sp1> ... --all <spA> ..." >&2
         return 1
     fi
     shift
@@ -86,7 +173,7 @@ function input4mcscanx() {
         rm -r "$tmpdir"
     done
 
-    # === Make diamond DB for all species once ===
+    # === Make diamond DB for focus species once ===
     for sp in "${focus[@]}"; do
         local sp_name="${sp// /_}"
         diamond makedb --in "${taskdir}/fasta/${sp_name}.fasta" \
