@@ -14,17 +14,17 @@ function input4mcscanx() {
 
     if (( $# < 2 )); then
         echo "Usage: input4mcscanx [--threads N] <sp1> <sp2> ..." >&2
-        return 1
+        exit 1
     fi
-    local all=("$@")
+    local names=("$@")
 
     # === Prepare task directory ===
     local taskdir="${TASKS}/mcscanx_$(date +"%Y-%m-%d-%H-%M-%S")"
     mkdir -p "${taskdir}/fasta" "${taskdir}/bed" "${taskdir}/pairs" "${taskdir}/collinearity"
 
     # === Prepare files for each species ===
-    for sp in "${all[@]}"; do
-        local sp_name="${sp// /_}"
+    for name in "${names[@]}"; do
+        local sp_name="${name// /_}"
         local tmpdir="${taskdir}/tmp_${sp_name}"
         mkdir -p "$tmpdir"
 
@@ -53,41 +53,74 @@ function input4mcscanx() {
         rm -r "$tmpdir"
     done
 
-    # === Make diamond DB for focus species once ===
-    for sp in "${all[@]}"; do
-        local sp_name="${sp// /_}"
+    # === Make diamond DB for all species once ===
+    for name in "${names[@]}"; do
+        local sp_name="${name// /_}"
         diamond makedb --in "${taskdir}/fasta/${sp_name}.fasta" \
             -d "${taskdir}/fasta/${sp_name}.dmnd"
     done
 
-    # === Pairwise comparisons: focus × other ===
-    for ((i=0; i<${#all[@]}; i++)); do
-        for ((j=i+1; j<${#all[@]}; j++)); do
-            local sp1="${all[i]}"
-            local sp2="${all[j]}"
-            local sp1_name="${sp1// /_}"
-            local sp2_name="${sp2// /_}"
-            local pairdir="${taskdir}/pairs/${sp1_name}__${sp2_name}"
+    # === Pairwise comparisons ===
+    for ((i=1; i<=${#names[@]}; i++)); do
+        for ((j=i+1; j<=${#names[@]}; j++)); do
+            local name1="${names[i]}"
+            local name2="${names[j]}"
+            local sp_name1="${name1// /_}"
+            local sp_name2="${name2// /_}"
+            local pairdir="${taskdir}/pairs/${sp_name1}__${sp_name2}"
             mkdir -p "$pairdir"
 
-            cat "${taskdir}/bed/${sp1_name}.bed" \
-                "${taskdir}/bed/${sp2_name}.bed" \
-                > "${pairdir}/${sp1_name}__${sp2_name}.gff"
+            cat "${taskdir}/bed/${sp_name1}.bed" \
+                "${taskdir}/bed/${sp_name2}.bed" \
+                > "${pairdir}/${sp_name1}__${sp_name2}.gff"
 
             diamond blastp \
-                -q "${taskdir}/fasta/${sp1_name}.fasta" \
-                -d "${taskdir}/fasta/${sp2_name}.dmnd" \
-                -o "${pairdir}/${sp1_name}__${sp2_name}.blast" \
+                -q "${taskdir}/fasta/${sp_name1}.fasta" \
+                -d "${taskdir}/fasta/${sp_name2}.dmnd" \
+                -o "${pairdir}/${sp_name1}__${sp_name2}.blast" \
                 --threads "$threads" --outfmt 6
-
-            MCScanX "${pairdir}/${sp1_name}__${sp2_name}"
-
-            cp "${pairdir}/${sp1_name}__${sp2_name}.collinearity" "${taskdir}/collinearity/${sp1_name}__${sp2_name}.collinearity"
         done
     done
 }
 
-function input4mcscanx2() {
+run_mcscanx() {
+    # This function runs MCScanX on a given task directory.
+    # input4mcscanx should be called before this function to prepare the input.
+    # Dependencies: MCScanX
+
+    # === Defaults ===
+    local threads=4
+
+    # === Arguments ===
+    if (( $# < 1 )); then
+        echo "Usage: run_mcscanx <taskname>" >&2
+        exit 1
+    fi
+
+    local taskname="$1"
+    local taskdir="${TASKS}/${taskname}"
+
+    if [[ ! -d "${taskdir}/pairs" ]]; then
+        echo "[Error] Input pairs directory not found: ${taskdir}/pairs" >&2
+        exit 1
+    fi
+
+    if [[ ! -d "${taskdir}/collinearity" ]]; then
+        mkdir -p "${taskdir}/collinearity"
+    fi
+
+    # === Run MCScanX for each pair ===
+    for pairdir in "${taskdir}/pairs/"*; do
+        if [[ -d "$pairdir" ]]; then
+            local pairname="${pairdir:t}"
+            MCScanX "$pairdir"
+            cp "${pairdir}/${pairname}.collinearity" "${taskdir}/collinearity/${pairname}.collinearity"
+        fi
+    done
+}
+
+
+function input4mcscanx_group() {
     # Prepare input for MCScanX with focus × other comparisons only
     # Dependencies: bithon, fasp, g2bp, diamond, MCScanX
 
@@ -98,15 +131,15 @@ function input4mcscanx2() {
         shift 2
     fi
 
-    if [[ "$1" != "--focus" ]]; then
-        echo "Usage: input4mcscanx2 [--threads N] --focus <sp1> ... --all <spA> ..." >&2
+    if [[ "$1" != "--group" ]]; then
+        echo "Usage: input4mcscanx_group [--threads N] --group <sp1> ... --all <spA> ..." >&2
         return 1
     fi
     shift
 
-    local focus=()
+    local group1=()
     while [[ "$1" != "--all" && $# -gt 0 ]]; do
-        focus+=("$1")
+        group1+=("$1")
         shift
     done
 
@@ -119,8 +152,8 @@ function input4mcscanx2() {
     local all=("$@")
 
     # === Checks ===
-    if (( ${#focus[@]} < 1 )); then
-        echo "[Error] At least one focus species required" >&2
+    if (( ${#group1[@]} < 1 )); then
+        echo "[Error] At least one group1 species required" >&2
         return 1
     fi
     if (( ${#all[@]} < 2 )); then
@@ -129,13 +162,13 @@ function input4mcscanx2() {
     fi
 
     # === Determine other species ===
-    local others=()
-    for sp in "${all[@]}"; do
+    local group2=()
+    for name in "${all[@]}"; do
         local found=0
-        for fsp in "${focus[@]}"; do
-            [[ "$sp" == "$fsp" ]] && found=1 && break
+        for name1 in "${group1[@]}"; do
+            [[ "$name" == "$name1" ]] && found=1 && break
         done
-        (( found == 0 )) && others+=("$sp")
+        (( found == 0 )) && group2+=("$name")
     done
 
     # === Prepare task directory ===
@@ -143,8 +176,8 @@ function input4mcscanx2() {
     mkdir -p "${taskdir}/fasta" "${taskdir}/bed" "${taskdir}/pairs" "${taskdir}/collinearity"
 
     # === Prepare files for each species ===
-    for sp in "${all[@]}"; do
-        local sp_name="${sp// /_}"
+    for name in "${all[@]}"; do
+        local sp_name="${name// /_}"
         local tmpdir="${taskdir}/tmp_${sp_name}"
         mkdir -p "$tmpdir"
 
@@ -173,34 +206,30 @@ function input4mcscanx2() {
         rm -r "$tmpdir"
     done
 
-    # === Make diamond DB for focus species once ===
-    for sp in "${focus[@]}"; do
-        local sp_name="${sp// /_}"
+    # === Make diamond DB for group1 species once ===
+    for name in "${group1[@]}"; do
+        local sp_name="${name// /_}"
         diamond makedb --in "${taskdir}/fasta/${sp_name}.fasta" \
             -d "${taskdir}/fasta/${sp_name}.dmnd"
     done
 
-    # === Pairwise comparisons: focus × other ===
-    for sp1 in "${focus[@]}"; do
-        for sp2 in "${others[@]}"; do
-            local sp1_name="${sp1// /_}"
-            local sp2_name="${sp2// /_}"
-            local pairdir="${taskdir}/pairs/${sp1_name}__${sp2_name}"
+    # === Pairwise comparisons: group1 × group2 ===
+    for name1 in "${group1[@]}"; do
+        for name2 in "${group2[@]}"; do
+            local sp_name1="${name1// /_}"
+            local sp_name2="${name2// /_}"
+            local pairdir="${taskdir}/pairs/${sp_name1}__${sp_name2}"
             mkdir -p "$pairdir"
 
-            cat "${taskdir}/bed/${sp1_name}.bed" \
-                "${taskdir}/bed/${sp2_name}.bed" \
-                > "${pairdir}/${sp1_name}__${sp2_name}.gff"
+            cat "${taskdir}/bed/${sp_name1}.bed" \
+                "${taskdir}/bed/${sp_name2}.bed" \
+                > "${pairdir}/${sp_name1}__${sp_name2}.gff"
 
             diamond blastp \
-                -q "${taskdir}/fasta/${sp2_name}.fasta" \
-                -d "${taskdir}/fasta/${sp1_name}.dmnd" \
-                -o "${pairdir}/${sp1_name}__${sp2_name}.blast" \
+                -q "${taskdir}/fasta/${sp_name2}.fasta" \
+                -d "${taskdir}/fasta/${sp_name1}.dmnd" \
+                -o "${pairdir}/${sp_name1}__${sp_name2}.blast" \
                 --threads "$threads" --outfmt 6
-
-            MCScanX "${pairdir}/${sp1_name}__${sp2_name}"
-
-            cp "${pairdir}/${sp1_name}__${sp2_name}.collinearity" "${taskdir}/collinearity/${sp1_name}__${sp2_name}.collinearity"
         done
     done
 }
