@@ -113,7 +113,7 @@ run_mcscanx() {
     for pairdir in "${taskdir}/pairs/"*; do
         if [[ -d "$pairdir" ]]; then
             local pairname="${pairdir:t}"
-            MCScanX "$pairdir"
+            MCScanX "${pairdir}/${pairname}"
             cp "${pairdir}/${pairname}.collinearity" "${taskdir}/collinearity/${pairname}.collinearity"
         fi
     done
