@@ -15,3 +15,4 @@
 !/libs/ncbi.zsh
 !/libs/sonicparanoid.zsh
 !/libs/orthofinder.zsh
+!/libs/genome_annot.zsh
